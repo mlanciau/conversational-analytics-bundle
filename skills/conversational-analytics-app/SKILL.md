@@ -13,9 +13,13 @@ timestamp: 2026-09-10T16:47:00Z
 
 This skill provides instructions and best practices for building a conversational analytics application with a backend deployed on Google Cloud Run and a frontend.
 
-## 0. Scaffolding Preferences
-- **IMPORTANT**: Before generating any code or creating new files for the application, you MUST ask the user if the generated assets should be placed into a `bundle` directory (which should not be tracked by git) or another specific location. Do not scaffold files directly into the root workspace without confirming the location first.
-
+## 0. Requirements Gathering & Scaffolding Preferences
+- **Data Agent Context**: Before writing any code, you MUST ask the user about their conversational analytics requirements. Specifically, ask them to define:
+  1. **Primary Data Source**: What is the underlying data platform (e.g., Google BigQuery, Looker, or another database)?
+  2. **Knowledge Sources**: Which specific tables, views, Looker explores, or Lakehouse datasets will the agent connect to?
+  3. **Context & Metadata**: Are there any custom business definitions (e.g., what constitutes a "top performer") or verified "golden queries" that the agent needs to know?
+  4. **Instructions**: Are there any default behaviors, filters, or groupings (e.g., "always filter to the most recent quarter") the agent must apply to its queries?
+- **Scaffolding Location**: **IMPORTANT**: Before generating any code or creating new files for the application, you MUST ask the user if the generated assets should be placed into a `bundle` directory (which should not be tracked by git) or another specific location. Do not scaffold files directly into the root workspace without confirming the location first.
 ## 1. Architecture Overview
 - **Backend:** A containerized service (e.g., Python with FastAPI or Flask, or Node.js with Express) exposing a REST or gRPC API. It handles the conversational AI logic (e.g., using Gemini API or Vertex AI) and processes analytics data (e.g., querying BigQuery).
 - **Frontend:** A web application (e.g., React, Next.js, or Streamlit) that provides the user chat interface and renders analytics dashboards or charts.
