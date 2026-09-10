@@ -14,7 +14,13 @@ timestamp: 2026-09-10T16:47:00Z
 This skill provides instructions and best practices for building a conversational analytics application with a backend deployed on Google Cloud Run and a frontend.
 
 ## 0. Requirements Gathering & Scaffolding Preferences
-- **Data Agent Context**: Before writing any code, you MUST ask the user about their conversational analytics requirements. Specifically, ask them to define:
+- **App Configuration & Tech Stack**: Before writing any code, you MUST ask the user to clarify their preferred stack and setup:
+  1. **Frontend Framework**: React + Vite, Next.js, Streamlit, or something else?
+  2. **Backend Language/Framework**: Python (FastAPI/Flask) or Node.js (Express)?
+  3. **Authentication & Security**: Does the app require user authentication (e.g., Google Cloud IAP, Firebase Auth), or will it be public?
+  4. **GCP Project Details**: What is the target Google Cloud Project ID and Region?
+  5. **Conversational AI Service**: Which AI service should be used (e.g., Gemini Data Analytics API, Vertex AI Agent Builder, or Dialogflow)?
+- **Data Agent Context**: You MUST ask the user about their conversational analytics data requirements:
   1. **Primary Data Source**: What is the underlying data platform (e.g., Google BigQuery, Looker, or another database)?
   2. **Knowledge Sources**: Which specific tables, views, Looker explores, or Lakehouse datasets will the agent connect to?
   3. **Context & Metadata**: Are there any custom business definitions (e.g., what constitutes a "top performer") or verified "golden queries" that the agent needs to know?
