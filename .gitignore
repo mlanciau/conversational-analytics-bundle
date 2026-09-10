@@ -1,1 +1,3 @@
 bundle/
+.venv
+*.py
