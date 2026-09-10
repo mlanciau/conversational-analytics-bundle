@@ -13,6 +13,9 @@ timestamp: 2026-09-10T16:47:00Z
 
 This skill provides instructions and best practices for building a conversational analytics application with a backend deployed on Google Cloud Run and a frontend.
 
+## 0. Scaffolding Preferences
+- **IMPORTANT**: Before generating any code or creating new files for the application, you MUST ask the user if the generated assets should be placed into a `bundle` directory (which should not be tracked by git) or another specific location. Do not scaffold files directly into the root workspace without confirming the location first.
+
 ## 1. Architecture Overview
 - **Backend:** A containerized service (e.g., Python with FastAPI or Flask, or Node.js with Express) exposing a REST or gRPC API. It handles the conversational AI logic (e.g., using Gemini API or Vertex AI) and processes analytics data (e.g., querying BigQuery).
 - **Frontend:** A web application (e.g., React, Next.js, or Streamlit) that provides the user chat interface and renders analytics dashboards or charts.
