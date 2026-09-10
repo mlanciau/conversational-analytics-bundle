@@ -42,6 +42,31 @@ This skill provides instructions and best practices for building a conversationa
   ```
 - **Security & Config:** Manage sensitive API keys using Google Cloud Secret Manager and grant the Cloud Run service account the necessary IAM roles.
 
+### Using Looker with Gemini Data Analytics API
+If the user specifies **Looker** as the primary data source, follow these implementation rules:
+- You MUST use the `google-cloud-geminidataanalytics` package instead of the standard `vertexai` library.
+- Initialize the client using `client = geminidataanalytics_v1beta.DataChatServiceClient()`.
+- Configure the `inline_context` with a `datasource_references` object for Looker, including `explore_references` and `credentials`.
+- **Looker Authentication**: The API requires a valid access token. You MUST read this from an environment variable (e.g. `LOOKER_ACCESS_TOKEN`) and inject it into the request:
+  ```python
+  "datasource_references": {
+      "looker": {
+          "explore_references": [{
+              "looker_instance_uri": LOOKER_INSTANCE,
+              "lookml_model": LOOKER_MODEL,
+              "explore": LOOKER_EXPLORE,
+          }],
+          "credentials": {
+              "oauth": {
+                  "token": {
+                      "access_token": os.getenv("LOOKER_ACCESS_TOKEN")
+                  }
+              }
+          }
+      }
+  }
+  ```
+
 ## 3. Frontend Development
 - Configure the frontend to communicate with the Cloud Run backend URL.
 - Implement robust error handling and loading states in the chat UI, as AI processing and analytics queries can take several seconds.
