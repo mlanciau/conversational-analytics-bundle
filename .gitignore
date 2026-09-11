@@ -1,3 +1,4 @@
 bundle/
 .venv
 *.py
+__pycache__/
