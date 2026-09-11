@@ -35,3 +35,7 @@ To add new capabilities to this bundle:
 - **Skills:** Add a new directory under `skills/` containing a `SKILL.md` file with your workflow instructions.
 - **Agents:** Add custom subagents under an `agents/` directory (e.g., a specialized `frontend-designer` agent).
 - **Rules:** Add contextual guidelines in a `rules/` directory to enforce specific coding styles and security standards.
+
+## References
+- [Conversational Analytics API Quickstarts](https://github.com/looker-open-source/ca-api-quickstarts)
+- [Conversational Analytics API Overview](https://docs.cloud.google.com/gemini/data-agents/conversational-analytics-api/overview)
