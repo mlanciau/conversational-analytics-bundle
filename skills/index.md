@@ -12,4 +12,4 @@ This directory contains individual skill modules.
 
 ## Available Skills
 
-- [conversational-analytics-app](conversational-analytics-app/SKILL.md): Architecture and deployment runbook for Cloud Run conversational AI backends.
+- [conversational-analytics-app](conversational-analytics-app/SKILL.md): Architecture and deployment runbook for Cloud Run conversational AI backends. See its `reference/` subdirectory for detailed docs and `templates/` for starter code.

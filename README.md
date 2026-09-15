@@ -14,9 +14,11 @@ This bundle equips your agent with specialized knowledge, step-by-step runbooks,
 ## Included Customizations
 
 ### Skills
-- **`conversational-analytics-app`**: Instructs the agent on the architecture, development guidelines, and `gcloud` deployment steps for conversational analytics apps. 
+- **`conversational-analytics-app`**: Instructs the agent on the architecture, development guidelines, and `gcloud` deployment steps for conversational analytics apps. The skill itself is a short overview (`SKILL.md`) that points to:
+  - `reference/`: detailed docs (data agent context, deployment, frontend UX, troubleshooting, API quirks) loaded on demand.
+  - `templates/`: starting-point code (Dockerfile, SSE backend relay, React chat component, smoke test) to adapt rather than generate from scratch.
 
-*(More skills and agents will be added here as the bundle grows.)*
+*(More skills will be added here as the bundle grows.)*
 
 ## Usage
 
@@ -27,14 +29,14 @@ mkdir -p ~/.gemini/config/plugins
 ln -s $(pwd) ~/.gemini/config/plugins/conversational-analytics-bundle
 ```
 
-*(Alternatively, you can create a `plugin.json` to properly declare it as a plugin module according to the customization system guidelines).*
+*(No `plugin.json` exists yet — add one if your harness needs a formal plugin manifest instead of the symlink above.)*
 
 ## Contributing
 
 To add new capabilities to this bundle:
-- **Skills:** Add a new directory under `skills/` containing a `SKILL.md` file with your workflow instructions.
-- **Agents:** Add custom subagents under an `agents/` directory (e.g., a specialized `frontend-designer` agent).
-- **Rules:** Add contextual guidelines in a `rules/` directory to enforce specific coding styles and security standards.
+- **Skills:** Add a new directory under `skills/` containing a `SKILL.md` file with your workflow instructions. For anything beyond a short skill, follow the pattern used by `conversational-analytics-app`: keep `SKILL.md` itself short (overview + pointers), put detailed docs in a `reference/` subdirectory loaded on demand, and put reusable starter code in a `templates/` subdirectory.
+- **Agents:** none exist yet. If you add custom subagents (e.g., a specialized `frontend-designer` agent), create an `agents/` directory to hold them.
+- **Rules:** none exist yet. If you add contextual guidelines to enforce specific coding styles or security standards, create a `rules/` directory to hold them.
 
 ## References
 - [Conversational Analytics API Quickstarts](https://github.com/looker-open-source/ca-api-quickstarts)
