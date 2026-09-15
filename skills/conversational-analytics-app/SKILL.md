@@ -208,7 +208,7 @@ Since the API can run heavy queries, handling wait states well matters:
 
 When developing with the `geminidataanalytics.googleapis.com` API, keep the following quirks in mind:
 
-- **Looker Credentials & Stateful Conversations Bug:** Passing Looker `credentials` on `ChatRequest` (e.g., `chat_req.credentials = credentials`) works perfectly for stateless conversations. However, if you are using a stateful conversation (`chat_req.conversation_reference.conversation = conv_name`), the backend fails to merge the credentials with the stored agent context and throws `400 request.context.datasource_references.references: invalid value: REFERENCES_NOT_SET`. Until this is fixed, **use stateless conversations** (passing `messages` history from the client) when authenticating Looker with inline credentials.
+
 - **Protobuf Enum Serialization:** When converting responses to JSON via `response.__class__.to_json(response)`, enums are often serialized as integers, not strings. For example, `text_type` will yield `1` (for `FINAL_RESPONSE`) or `2` (for `THOUGHT`). The frontend parsing logic must account for both string and integer values (e.g., `if text_type in ("FINAL_RESPONSE", 1):`).
 - **DataAgentContext Types:** The `ChatRequest.data_agent_context` field expects an instance of the `DataAgentContext` class, not a string. Example: `data_agent_context=geminidataanalytics.DataAgentContext(data_agent="projects/...")`.
 - **Long-Running Operations (LROs):** `DataAgentServiceClient.create_data_agent()` returns an `Operation` object. You must explicitly wait for it to complete using `response = operation.result()` before you can retrieve the newly created agent's `.name`.
