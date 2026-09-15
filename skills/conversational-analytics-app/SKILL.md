@@ -32,10 +32,11 @@ Before writing any code, ask the user to clarify:
 ## 1. Architecture Overview
 
 - **Backend:** A containerized service (Python/FastAPI or Flask, or Node.js/Express) exposing a REST API that wraps the Conversational Analytics API and streams responses back to the frontend.
-- **Frontend:** A web app (React, Next.js, or Streamlit) providing the chat UI and rendering the agent's text, generated SQL, tables, and charts.
+- **Frontend:** A web app (React or Next.js) providing the chat UI and rendering the agent's text, generated SQL, tables, and charts.
 - **Deployment:** The backend runs on Google Cloud Run for serverless autoscaling; the frontend can be static-hosted (Firebase Hosting, Cloud Storage + CDN) or served by the same container.
+- **Streamlit is the exception to the above split:** it's a single Python process that is both UI and API caller in the same request/rerun cycle — there's no separate REST backend, no SSE/WebSocket relay, and no CORS to configure. This is exactly what the official `ca-api-quickstarts` sample does, and it's explicitly **local-only** (no Cloud Run deployment). Only follow the Cloud Run/§3 and streaming/§4 guidance below when the frontend is React/Next.js with its own backend process.
 - **Data agent:** Either a **persistent `DataAgent`** resource (context authored once via `DataAgentServiceClient`, then referenced by ID on every chat call) or **stateless inline context** (the full `Context` object sent on every `chat()` call). Prefer a persistent agent when context (golden queries, business definitions) is stable and reused across users; use inline context for quick prototypes or per-user/per-session customization.
-- **Conversation state (independent choice from the above):** chats can be **stateful** — Cloud manages turn history in a persistent `Conversation` resource, referenced across requests — or **stateless** — the client resends prior turns with every request. See §2.5.
+- **Conversation state:** chats can be **stateful** — Cloud manages turn history in a persistent `Conversation` resource, referenced across requests — or **stateless** — the client resends prior turns with every request. Not fully independent of the choice above: stateful history can only be paired with a persistent agent, not inline context. See §2.5.
 
 ## 2. Data Agent Context (BigQuery, Looker & Other Sources)
 
@@ -75,10 +76,11 @@ datasource_references = geminidataanalytics.DatasourceReferences()
 datasource_references.looker.explore_references = [looker_explore_reference]
 ```
 
-**Looker authentication** — pick one and read secrets from environment variables / Secret Manager, never hardcode:
-- **Access token** (short-lived, obtained via the caller's Looker session): `credentials.oauth.token.access_token = os.getenv("LOOKER_ACCESS_TOKEN")`.
-- **OAuth client credentials** (service-to-service): `credentials.oauth.secret.client_id` / `credentials.oauth.secret.client_secret`.
-- **API key** (Looker client ID/secret pair, not an access token): simplest for prototypes and what the official `ca-api-quickstarts` sample uses; prefer OAuth for production service-to-service auth.
+**Looker authentication** — the `Credentials` proto has a single `oauth` kind with two mutually exclusive forms; pick one and read secrets from environment variables / Secret Manager, never hardcode:
+- **Access token** (`OAuthCredentials.TokenBased`, short-lived, obtained via the caller's Looker session): `credentials.oauth.token.access_token = os.getenv("LOOKER_ACCESS_TOKEN")`.
+- **Client ID/secret** (`OAuthCredentials.SecretBased`, a.k.a. "Looker API key" in Looker's own docs — it is the *same* field, not a separate mechanism): `credentials.oauth.secret.client_id` / `credentials.oauth.secret.client_secret`. Simplest for prototypes and what the official `ca-api-quickstarts` sample uses; prefer the access-token form for production service-to-service auth where the caller already holds a Looker session.
+
+Set these on **`ChatRequest.credentials`** (top-level field on the chat request) — this is the current, non-deprecated location. `DataAgentContext.credentials` and `LookerExploreReferences.credentials` still exist but are marked deprecated in favor of `ChatRequest.credentials`; don't copy older samples that set credentials there.
 
 If the Looker instance requires encryption-at-rest guarantees beyond Google-managed defaults, note that Looker data sources support **customer-managed encryption keys (CMEK)** — flag this during requirements gathering if the org has a CMEK policy.
 
@@ -104,6 +106,8 @@ For a **persistent** agent, wrap this in `data_agent.data_analytics_agent.publis
 
 `DataChatServiceClient.chat()` returns a stream of `Message` objects, not a single response. Each message carries a type such as `THOUGHT`, `PROGRESS`, or `FINAL_RESPONSE`, and may include structured data or a chart/visualization spec:
 
+`ChatRequest.context_provider` is a `oneof` with four mutually exclusive branches: `inline_context` (full `Context`, no agent), `data_agent_context` (persistent agent, no managed conversation history), `conversation_reference` (persistent agent **and** managed history — see §2.5), or `client_managed_resource_context` (caller tracks its own conversation/agent IDs). Pick exactly one:
+
 ```python
 messages = [geminidataanalytics.Message()]
 messages[0].user_message.text = user_text
@@ -111,7 +115,7 @@ messages[0].user_message.text = user_text
 request = geminidataanalytics.ChatRequest(
     parent=f"projects/{project_id}/locations/{location}",
     messages=messages,
-    data_agent_context=data_agent_context,  # or inline `context`
+    data_agent_context=data_agent_context,  # or inline_context=context
 )
 
 for response in data_chat_client.chat(request=request, timeout=300):
@@ -122,10 +126,10 @@ Because a single turn can take tens of seconds and arrives incrementally, the ba
 
 ### 2.5 Conversation state: stateful vs. stateless
 
-Orthogonal to persistent vs. inline **context** (§1) is how **turn history** is managed:
+This is **not** fully orthogonal to persistent vs. inline context (§1): `ConversationReference.data_agent_context` is a required field, so managed history (stateful) can only be paired with a **persistent** `DataAgent` — there's no stateful-conversation-with-inline-context combination.
 
-- **Stateful:** create a `Conversation` resource once (`DataChatServiceClient.create_conversation()`), then pass its name in `ChatRequest.conversation_reference.conversation` on every turn. Google Cloud stores and replays prior turns server-side — simplest for a backend that just needs multi-turn follow-ups ("now break that down by region") without managing history itself. List/get/delete conversations via the same client to let users resume or clear past sessions.
-- **Stateless:** the client resends the full turn history (as a list of `Message` objects) with every `chat()` call via `conversation_reference.data_chat_context`. Gives the backend full control (e.g. to prune, redact, or persist history in its own store) at the cost of managing it manually.
+- **Stateful:** create a `Conversation` resource once (`DataChatServiceClient.create_conversation()`), then on every turn pass `ChatRequest.conversation_reference` with `.conversation` (the resource name) and `.data_agent_context.data_agent` (the persistent agent name). Google Cloud stores and replays prior turns server-side — simplest for a backend that just needs multi-turn follow-ups ("now break that down by region") without managing history itself. List/get/delete conversations via the same client to let users resume or clear past sessions.
+- **Stateless:** don't set `conversation_reference` at all — the client resends the full turn history as a list of `Message` objects in `ChatRequest.messages` on every `chat()` call, alongside either `ChatRequest.data_agent_context` (persistent agent) or `ChatRequest.inline_context` (ad hoc context). Gives the backend full control (e.g. to prune, redact, or persist history in its own store) at the cost of managing it manually.
 
 Default to stateful unless there's a specific reason to own history client-side (e.g. custom persistence, redaction before storage, or a stateless/serverless backend that shouldn't hold session affinity).
 
