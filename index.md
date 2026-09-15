@@ -2,7 +2,6 @@
 type: Project Bundle
 title: Conversational Analytics Bundle
 description: Jetski skills, agents, and configurations to build conversational analytics applications on Google Cloud Run.
-resource: file:///Users/mlanciau/Git/conversational-analytics-bundle
 tags: [jetski, google-cloud, cloud-run, conversational-ai, analytics]
 timestamp: 2026-09-10T16:47:00Z
 ---
