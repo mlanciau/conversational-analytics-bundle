@@ -162,6 +162,32 @@ If the user's primary source is one of these databases, confirm during requireme
 - Preserve a `conversation_id`/session reference across turns so multi-turn context (e.g. "now break that down by region") is maintained, if the backend uses stateful conversations.
 - **CORS:** ensure the backend explicitly allows the frontend's origin.
 
+### 4.1. Composants de base du Chat (L'Input et le Fil)
+C'est le socle de l'interaction conversationnelle.
+
+- **Zone de saisie (Textarea / Input)** : Un champ de texte (souvent multiligne) où l'utilisateur tape sa question en langage naturel (ex: "Quel est le chiffre d'affaires par produit le mois dernier ?").
+- **Bouton d'envoi (Button)** : Déclenche l'appel à la méthode chat de l'API.
+- **Conteneur d'historique (Message Thread)** : Une zone défilante affichant les échanges.
+  - **Messages Utilisateurs** : Souvent alignés à droite.
+  - **Messages de l'Agent** : Alignés à gauche, affichant le texte brut ou mis en forme.
+- **Gestion des Sessions (Panneau latéral)** : Si vous utilisez le mode Stateful (avec état) de l'API, vous aurez besoin d'une liste des conversations passées et d'un bouton "Nouvelle conversation" pour réinitialiser le contexte.
+
+### 4.2. Composants spécifiques à l'Analytique (Crucial pour cette API)
+L'API Conversational Analytics ne renvoie pas que du texte ; elle renvoie des données structurées et des graphiques. Votre UI doit être capable de les interpréter.
+
+- **Interprète Markdown** : Les explications textuelles de l'Agent incluent souvent du Markdown (listes à puces, gras). Votre UI doit formater cela proprement.
+- **Rendu de Tableaux de données (Data Table)** : L'API renvoie des résultats de requêtes sous forme de tableaux. Prévoyez un composant de grille (Table) avec pagination ou défilement pour afficher ces données.
+- **Module de rendu graphique (Vega-Lite Renderer)** : C'est le point le plus important. L'API génère des visualisations au format Vega-Lite JSON. Votre frontend doit embarquer une librairie (comme vega-embed ou des wrappers React/Vue/Angular dédiés) pour transformer ce JSON en un graphique interactif (barres, lignes, camemberts).
+- **Tiroir de transparence/débogage (Facultatif mais recommandé)** : Pour les utilisateurs techniques, un bouton ou un accordéon "Voir la requête" pour afficher le code SQL ou Python généré par l'Agent en arrière-plan.
+
+### 4.3. Indicateurs d'état et UX
+Puisque l'API exécute des requêtes de bases de données parfois lourdes, la gestion des états d'attente est vitale.
+
+- **Indicateur de "réflexion" (Loading Spinner / Agent Typing)** : Montre à l'utilisateur que l'agent génère le SQL, traite la donnée ou exécute du code Python.
+- **Bouton d'interruption (Stop Generation)** : Permet à l'utilisateur d'annuler une requête trop longue.
+- **Gestion du Streaming** : L'API supporte le streaming de réponses. Votre UI doit être capable de mettre à jour le message au fil de l'eau (effet "machine à écrire") plutôt que d'attendre la réponse complète.
+- **Bandeau de gestion d'erreur** : Pour afficher proprement les erreurs de parsing, les timeouts ou les refus d'accès aux données.
+
 ## 5. Testing & Local Development
 
 - Run the backend locally with Application Default Credentials (`gcloud auth application-default login`) before deploying, and verify against a low-cost/sandboxed dataset.
@@ -179,3 +205,25 @@ If the user's primary source is one of these databases, confirm during requireme
 - **Timeouts / truncated responses:** check the Cloud Run `--timeout` setting and any frontend/proxy timeout — long analytical queries can exceed default limits.
 - **Quota errors:** the Conversational Analytics API and underlying BigQuery jobs are subject to project quotas; check Cloud Console quota pages if requests are being rejected under load.
 - **Output correctness:** this is early-stage technology — generated SQL/analysis can be wrong even when the response looks confident. Surface generated SQL to users (don't hide it) and encourage spot-checking results against a trusted source before they're used for a decision; don't present agent output as ground truth.
+
+## 7. Gotchas & Important API Quirks
+
+When developing with the `geminidataanalytics.googleapis.com` API, keep the following quirks in mind:
+
+- **Looker Credentials & Stateful Conversations Bug:** Passing Looker `credentials` on `ChatRequest` (e.g., `chat_req.credentials = credentials`) works perfectly for stateless conversations. However, if you are using a stateful conversation (`chat_req.conversation_reference.conversation = conv_name`), the backend fails to merge the credentials with the stored agent context and throws `400 request.context.datasource_references.references: invalid value: REFERENCES_NOT_SET`. Until this is fixed, **use stateless conversations** (passing `messages` history from the client) when authenticating Looker with inline credentials.
+- **Protobuf Enum Serialization:** When converting responses to JSON via `response.__class__.to_json(response)`, enums are often serialized as integers, not strings. For example, `text_type` will yield `1` (for `FINAL_RESPONSE`) or `2` (for `THOUGHT`). The frontend parsing logic must account for both string and integer values (e.g., `if text_type in ("FINAL_RESPONSE", 1):`).
+- **DataAgentContext Types:** The `ChatRequest.data_agent_context` field expects an instance of the `DataAgentContext` class, not a string. Example: `data_agent_context=geminidataanalytics.DataAgentContext(data_agent="projects/...")`.
+- **Long-Running Operations (LROs):** `DataAgentServiceClient.create_data_agent()` returns an `Operation` object. You must explicitly wait for it to complete using `response = operation.result()` before you can retrieve the newly created agent's `.name`.
+
+## 8. Stream Event Types and UI Capabilities
+
+When streaming `geminidataanalytics.Message` objects in the `/chat` response, the `system_message` field uses a `oneof` wrapper that dictates what kind of data the agent is returning. You can inspect these fields to build rich, interactive UI components in the frontend:
+
+- **Text (`text`)**: Contains a `text_type` (`1` = `FINAL_RESPONSE`, `2` = `THOUGHT`, `3` = `PROGRESS`) and `parts` containing the actual strings. Render `THOUGHT`s as collapsible logs or italicized "Thinking..." states, and `FINAL_RESPONSE` as the main markdown text.
+- **Data (`data`)**: Contains a `DataMessage` with multiple useful properties:
+  - `generated_sql`: The exact SQL string generated by the agent. Great for rendering inside a code block (`st.code(sql, language="sql")`) for transparency.
+  - `query.looker`: The specific `LookerQuery` (explore, filters, sorts, limit) generated for Looker data sources.
+  - `result.data` / `result.formatted_data`: The retrieved rows. You can convert these into a pandas DataFrame and render them as a table (`st.dataframe()`).
+  - `big_query_job`: For BQ sources, it contains the `job_id` and `project_id`.
+- **Chart (`chart`)**: Contains a `ChartMessage`. Look specifically for `result.vega_config`. This is a fully compliant JSON representation of a Vega-Lite chart. In Streamlit, you can render this natively using `st.vega_lite_chart(vega_config)`.
+- **Schema (`schema`)**: Contains a `SchemaMessage`. Useful for showing the user what semantic models or tables the agent decided to look into before querying.
