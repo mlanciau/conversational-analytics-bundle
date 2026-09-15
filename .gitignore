@@ -2,3 +2,4 @@ bundle/
 .venv
 *.py
 __pycache__/
+.env
