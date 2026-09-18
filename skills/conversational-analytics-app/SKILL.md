@@ -57,6 +57,7 @@ Load these as needed rather than all at once — each covers one part of the bui
 [`templates/`](templates/) has starting points to adapt (not generate from scratch):
 
 - `Dockerfile`, `requirements.txt` — Cloud Run container for a Python backend.
+- `backend.env.example`, `frontend.env.example` — every env var the templates below read, with what each does and where it's documented in more detail.
 - `backend_sse_relay.py` — FastAPI `/chat` endpoint relaying the Conversational Analytics stream over SSE, plus `/feedback` for star-rating capture.
 - `frontend_chat.jsx` — minimal React component consuming that SSE endpoint, with the feedback control and data table wired in.
 - `frontend_feedback.jsx` — the 5-star + comment feedback control on its own; see `reference/feedback-capture.md`.
