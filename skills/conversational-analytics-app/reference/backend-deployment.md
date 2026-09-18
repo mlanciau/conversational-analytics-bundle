@@ -12,5 +12,5 @@
     --allow-unauthenticated   # omit / replace with --no-allow-unauthenticated + IAM/IAP if auth is required
   ```
 - **Secrets & config:** store API keys, Looker credentials, and other secrets in Google Cloud Secret Manager, mount them as env vars or volumes, and grant the Cloud Run service account `roles/secretmanager.secretAccessor` plus whatever IAM roles the data source requires (e.g. `roles/bigquery.dataViewer`, `roles/bigquery.jobUser`). Never commit secrets or `.env` files to git.
-- **Least privilege:** grant the Cloud Run service account only the roles needed for the specific datasets/explores in scope — avoid project-wide `roles/bigquery.admin` or similar broad grants.
+- **Least privilege:** grant the Cloud Run service account only the roles needed for the specific datasets/explores in scope — avoid project-wide `roles/bigquery.admin` or similar broad grants. If you add feedback capture (`reference/feedback-capture.md`), that's a separate `roles/bigquery.dataEditor` grant scoped to the feedback dataset, nothing broader.
 - **Cost controls:** for BigQuery-backed agents, set spending limits (custom quotas or `maximum_bytes_billed`) at the project, user, and/or per-query level — a conversational agent can generate exploratory queries a human wouldn't, and an unbounded scan on a large table is easy to trigger by accident.

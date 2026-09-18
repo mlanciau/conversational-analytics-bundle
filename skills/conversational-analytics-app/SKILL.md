@@ -27,6 +27,7 @@ Before writing any code, ask the user to clarify:
   3. Business definitions and **golden queries** the agent should know, plus whether a semantic layer (LookML, or structured YAML metadata for BigQuery-only) already exists — semantic layers meaningfully improve query accuracy and are worth building if the agent will run non-trivial queries.
   4. Default behaviors/filters the agent must always apply (e.g. "filter to the most recent quarter").
 - **Persistence model**: does the app need a reusable `DataAgent` resource (context published once, referenced by ID), or is stateless inline context per request sufficient? This affects whether `DataAgentServiceClient` is needed in addition to `DataChatServiceClient` — see `reference/data-agent-context.md`.
+- **Feedback capture**: does the app need a 5-star + comment control on responses? Cheap to add and a good default to recommend — it's the main signal for improving golden queries and `system_instruction` later. See `reference/feedback-capture.md`.
 - **Scaffolding location**: ask whether generated files should go into a `bundle/` directory (untracked by git) or elsewhere. Do not scaffold into the root workspace without confirming the location first.
 
 ## 1. Architecture Overview
@@ -47,12 +48,14 @@ Load these as needed rather than all at once — each covers one part of the bui
 - [`reference/frontend-ux.md`](reference/frontend-ux.md) — chat UI components, data table/Vega-Lite rendering, status indicators.
 - [`reference/testing-troubleshooting.md`](reference/testing-troubleshooting.md) — local testing, smoke tests, and common failure modes.
 - [`reference/api-quirks-and-events.md`](reference/api-quirks-and-events.md) — protobuf enum serialization gotchas, LRO handling, and the full stream `Message` event type reference.
+- [`reference/feedback-capture.md`](reference/feedback-capture.md) — 5-star + comment feedback control: UI, turn correlation, and Firestore storage.
 
 ## 3. Templates
 
 [`templates/`](templates/) has starting points to adapt (not generate from scratch):
 
 - `Dockerfile`, `requirements.txt` — Cloud Run container for a Python backend.
-- `backend_sse_relay.py` — minimal FastAPI `/chat` endpoint relaying the Conversational Analytics stream over SSE.
-- `frontend_chat.jsx` — minimal React component consuming that SSE endpoint.
+- `backend_sse_relay.py` — FastAPI `/chat` endpoint relaying the Conversational Analytics stream over SSE, plus `/feedback` for star-rating capture.
+- `frontend_chat.jsx` — minimal React component consuming that SSE endpoint, with the feedback control wired in under each response.
+- `frontend_feedback.jsx` — the 5-star + comment feedback control on its own; see `reference/feedback-capture.md`.
 - `smoke_test.py` — sends one chat turn and verifies a `FINAL_RESPONSE` comes back; see `reference/testing-troubleshooting.md`.

@@ -1,9 +1,17 @@
 // Minimal chat UI for the Conversational Analytics backend's /chat SSE endpoint.
 // See ../reference/frontend-ux.md for the full component checklist (data
-// tables, Vega-Lite charts, debug drawer, session sidebar, etc).
+// tables, Vega-Lite charts, debug drawer, session sidebar, etc) and
+// ../reference/feedback-capture.md for the star-rating control below.
 import { useState } from "react";
+import Feedback from "./frontend_feedback.jsx";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
+
+// Tags feedback submissions to a browser tab session — this template's
+// backend is stateless (see backend_sse_relay.py), so it isn't sent to
+// /chat itself. Pair with ChatRequest.conversation_reference (see
+// ../reference/data-agent-context.md) if you want multi-turn context too.
+const sessionId = crypto.randomUUID();
 
 export default function Chat() {
   const [messages, setMessages] = useState([]);
@@ -13,7 +21,8 @@ export default function Chat() {
   async function sendMessage() {
     if (!input.trim()) return;
     const userText = input;
-    setMessages((m) => [...m, { role: "user", text: userText }]);
+    const turnId = crypto.randomUUID();
+    setMessages((m) => [...m, { role: "user", text: userText, turnId }]);
     setInput("");
     setThinking(true);
 
@@ -37,18 +46,19 @@ export default function Chat() {
 
       for (const event of events) {
         const line = event.replace(/^data: /, "");
-        if (line) handleMessage(JSON.parse(line));
+        if (line) handleMessage(JSON.parse(line), userText, turnId);
       }
     }
     setThinking(false);
   }
 
-  function handleMessage(payload) {
+  function handleMessage(payload, question, turnId) {
     const text = payload.systemMessage?.text;
     if (!text) return;
     // textType serializes as an int or a string depending on the SDK version.
     if (text.textType === "FINAL_RESPONSE" || text.textType === 1) {
-      setMessages((m) => [...m, { role: "agent", text: text.parts?.join("") }]);
+      const answer = text.parts?.join("");
+      setMessages((m) => [...m, { role: "agent", text: answer, turnId, question }]);
     }
   }
 
@@ -58,6 +68,9 @@ export default function Chat() {
         {messages.map((m, i) => (
           <div key={i} className={m.role}>
             {m.text}
+            {m.role === "agent" && (
+              <Feedback sessionId={sessionId} turnId={m.turnId} question={m.question} answer={m.text} />
+            )}
           </div>
         ))}
         {thinking && <div className="thinking">Thinking...</div>}

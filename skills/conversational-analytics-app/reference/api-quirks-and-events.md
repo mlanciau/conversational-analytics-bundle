@@ -5,6 +5,7 @@ When developing with the `geminidataanalytics.googleapis.com` API, keep the foll
 - **Protobuf Enum Serialization:** When converting responses to JSON via `response.__class__.to_json(response)`, enums are often serialized as integers, not strings. For example, `text_type` will yield `1` (for `FINAL_RESPONSE`) or `2` (for `THOUGHT`). The frontend parsing logic must account for both string and integer values (e.g., `if text_type in ("FINAL_RESPONSE", 1):`).
 - **DataAgentContext Types:** The `ChatRequest.data_agent_context` field expects an instance of the `DataAgentContext` class, not a string. Example: `data_agent_context=geminidataanalytics.DataAgentContext(data_agent="projects/...")`.
 - **Long-Running Operations (LROs):** `DataAgentServiceClient.create_data_agent()` returns an `Operation` object. You must explicitly wait for it to complete using `response = operation.result()` before you can retrieve the newly created agent's `.name`.
+- **`messageId` is unreliable:** in testing, every streamed `Message` (both `THOUGHT` and `FINAL_RESPONSE`) came back with `messageId: ""` — don't build turn-correlation logic (e.g. feedback capture, see `feedback-capture.md`) on this field. Generate your own client-side turn id instead.
 
 # Stream Event Types and UI Capabilities
 
