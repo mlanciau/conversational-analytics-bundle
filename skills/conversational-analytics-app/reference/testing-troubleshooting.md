@@ -1,3 +1,11 @@
+---
+type: Reference
+title: Testing & Troubleshooting
+description: Local testing, smoke tests, and common failure modes for the Conversational Analytics API.
+tags: [conversational-analytics, testing, troubleshooting]
+timestamp: 2026-09-18T00:00:00Z
+---
+
 # Testing & Local Development
 
 - Run the backend locally with Application Default Credentials (`gcloud auth application-default login`) before deploying, and verify against a low-cost/sandboxed dataset.

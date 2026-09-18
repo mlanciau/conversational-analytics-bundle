@@ -4,6 +4,7 @@ title: Conversational Analytics Bundle
 description: Jetski skills, agents, and configurations to build conversational analytics applications on Google Cloud Run.
 tags: [jetski, google-cloud, cloud-run, conversational-ai, analytics]
 timestamp: 2026-09-10T16:47:00Z
+okf_version: "0.2"
 ---
 
 # Conversational Analytics Bundle

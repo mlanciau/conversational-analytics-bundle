@@ -1,3 +1,11 @@
+---
+type: Reference
+title: ADK Integration
+description: Direct API vs. Agent Development Kit (ADK) - tradeoffs, DataAgentToolset wiring, and adk deploy cloud_run.
+tags: [conversational-analytics, adk, agent-development-kit]
+timestamp: 2026-09-18T00:00:00Z
+---
+
 # Backend Integration Choice: Direct API vs. ADK
 
 There are two ways to wire the backend to the Conversational Analytics API. Decide during requirements gathering (§0) — it changes the backend implementation, the deployment tooling, and the frontend's streaming contract, so don't scaffold before this is confirmed.

@@ -1,3 +1,11 @@
+---
+type: Reference
+title: Data Agent Context
+description: Building Context for BigQuery/Looker data sources, golden queries, streamed chat() calls, and stateful vs. stateless conversations.
+tags: [conversational-analytics, data-agent, bigquery, looker]
+timestamp: 2026-09-18T00:00:00Z
+---
+
 # Data Agent Context (BigQuery, Looker & Other Sources)
 
 > This covers the **direct-API path** (calling `DataChatServiceClient`/`DataAgentServiceClient` yourself). If the project is using ADK instead, see `adk-integration.md` — the `DataAgent` creation steps below still apply (ADK's `DataAgentToolset` wraps the same resource), but the chat/streaming/conversation-state guidance below does not.

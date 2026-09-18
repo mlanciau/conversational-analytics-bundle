@@ -1,3 +1,11 @@
+---
+type: Reference
+title: Feedback Capture
+description: 5-star + comment feedback control - UI, turn correlation, and BigQuery storage.
+tags: [conversational-analytics, feedback, bigquery]
+timestamp: 2026-09-18T00:00:00Z
+---
+
 # User Feedback Capture (star rating + comment)
 
 A lightweight feedback control on each agent response is the cheapest signal you have for improving `system_instruction` and golden queries over time (see `data-agent-context.md`) — treat it as a standard component, not an afterthought.

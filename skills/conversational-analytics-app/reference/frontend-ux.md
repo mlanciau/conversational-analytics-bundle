@@ -1,3 +1,11 @@
+---
+type: Reference
+title: Frontend UX Components
+description: Chat UI components, data table & CSV export, Vega-Lite chart rendering, and status indicators.
+tags: [conversational-analytics, frontend, ux, react]
+timestamp: 2026-09-18T00:00:00Z
+---
+
 # Frontend Development
 
 - Configure the frontend to call the Cloud Run backend's streaming endpoint and render messages incrementally as they arrive (e.g. show `THOUGHT`/`PROGRESS` as a "thinking..." indicator, then replace with `FINAL_RESPONSE` content, tables, and charts). See `templates/frontend_chat.jsx` for a minimal working example.

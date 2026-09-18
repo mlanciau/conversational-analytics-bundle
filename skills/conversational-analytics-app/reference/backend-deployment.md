@@ -1,3 +1,11 @@
+---
+type: Reference
+title: Backend Deployment (Cloud Run)
+description: Cloud Run deployment steps, secrets/IAM, and cost controls for the direct-API backend.
+tags: [conversational-analytics, cloud-run, deployment, iam]
+timestamp: 2026-09-18T00:00:00Z
+---
+
 # Backend Development & Deployment (Cloud Run)
 
 > This covers the **direct-API path** (a hand-written FastAPI backend). If the project is using ADK instead, see `adk-integration.md` — deployment goes through `adk deploy cloud_run` and ADK's own `get_fast_api_app()`, not `templates/Dockerfile` + `templates/backend_sse_relay.py`.

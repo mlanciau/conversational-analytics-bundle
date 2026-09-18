@@ -1,3 +1,11 @@
+---
+type: Reference
+title: API Quirks & Stream Events
+description: Protobuf enum serialization gotchas, LRO handling, and the full stream Message event type reference.
+tags: [conversational-analytics, api, quirks]
+timestamp: 2026-09-18T00:00:00Z
+---
+
 # Gotchas & Important API Quirks
 
 When developing with the `geminidataanalytics.googleapis.com` API, keep the following quirks in mind:
