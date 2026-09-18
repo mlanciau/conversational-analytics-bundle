@@ -1,5 +1,7 @@
 # Backend Development & Deployment (Cloud Run)
 
+> This covers the **direct-API path** (a hand-written FastAPI backend). If the project is using ADK instead, see `adk-integration.md` — deployment goes through `adk deploy cloud_run` and ADK's own `get_fast_api_app()`, not `templates/Dockerfile` + `templates/backend_sse_relay.py`.
+
 - Listen on the port from the `PORT` environment variable (default 8080).
 - Include a `Dockerfile` that containerizes the backend — see `templates/Dockerfile` for a starting point.
 - Propagate the Conversational Analytics stream to the client incrementally (SSE endpoint or WebSocket) instead of collecting it into one JSON response — Cloud Run supports long-lived HTTP connections but has a request timeout (default 300s, configurable up to 60 minutes); set `--timeout` accordingly for long-running chats. See `templates/backend_sse_relay.py` for a minimal working relay.

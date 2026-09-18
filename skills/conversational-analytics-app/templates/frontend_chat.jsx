@@ -4,6 +4,7 @@
 // ../reference/feedback-capture.md for the star-rating control below.
 import { useState } from "react";
 import Feedback from "./frontend_feedback.jsx";
+import DataTable from "./frontend_data_table.jsx";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:8080";
 
@@ -54,11 +55,20 @@ export default function Chat() {
 
   function handleMessage(payload, question, turnId) {
     const text = payload.systemMessage?.text;
-    if (!text) return;
-    // textType serializes as an int or a string depending on the SDK version.
-    if (text.textType === "FINAL_RESPONSE" || text.textType === 1) {
-      const answer = text.parts?.join("");
-      setMessages((m) => [...m, { role: "agent", text: answer, turnId, question }]);
+    if (text) {
+      // textType serializes as an int or a string depending on the SDK version.
+      if (text.textType === "FINAL_RESPONSE" || text.textType === 1) {
+        const answer = text.parts?.join("");
+        setMessages((m) => [...m, { role: "agent", text: answer, turnId, question }]);
+      }
+      return;
+    }
+
+    // A single question typically produces a "query dispatched" data message
+    // first (query only, no result yet) — skip until result is populated.
+    const result = payload.systemMessage?.data?.result;
+    if (result) {
+      setMessages((m) => [...m, { role: "data", result, turnId }]);
     }
   }
 
@@ -67,7 +77,7 @@ export default function Chat() {
       <div className="thread">
         {messages.map((m, i) => (
           <div key={i} className={m.role}>
-            {m.text}
+            {m.role === "data" ? <DataTable result={m.result} /> : m.text}
             {m.role === "agent" && (
               <Feedback sessionId={sessionId} turnId={m.turnId} question={m.question} answer={m.text} />
             )}

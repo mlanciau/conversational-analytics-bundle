@@ -1,5 +1,7 @@
 # Data Agent Context (BigQuery, Looker & Other Sources)
 
+> This covers the **direct-API path** (calling `DataChatServiceClient`/`DataAgentServiceClient` yourself). If the project is using ADK instead, see `adk-integration.md` — the `DataAgent` creation steps below still apply (ADK's `DataAgentToolset` wraps the same resource), but the chat/streaming/conversation-state guidance below does not.
+
 Use the `google-cloud-geminidataanalytics` Python package (`from google.cloud import geminidataanalytics`).
 
 ## BigQuery data sources

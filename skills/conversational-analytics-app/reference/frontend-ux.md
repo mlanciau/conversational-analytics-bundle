@@ -17,7 +17,7 @@
 The API returns structured data and charts, not just text — the UI must interpret them:
 
 - **Markdown renderer**: the agent's text explanations often include Markdown (lists, bold) and must be formatted properly.
-- **Data table**: query results come back as tabular data; use a grid component with pagination or scrolling.
+- **Data table & CSV export**: query results come back as tabular data (a `DataMessage` with `result.formattedData` + `result.schema.fields` — see `api-quirks-and-events.md` for the verified shape); use a grid component with pagination or scrolling, and pair it with a "Download CSV" button — this is usually the first thing users ask for once they see a table. Generate the CSV client-side from the same `formattedData` already in the stream (no extra backend round-trip needed): use `schema.fields[].displayName` for column headers (raw field names are often dotted source ids like `transactions.hash`), escape commas/quotes/newlines per field, and prefix the file with a UTF-8 BOM (`﻿`) so Excel opens accented characters correctly. See `templates/frontend_data_table.jsx`.
 - **Vega-Lite renderer** (most important): the API generates visualizations as Vega-Lite JSON. Embed a library (`vega-embed` or a framework-specific wrapper) to turn that JSON into an interactive chart.
 - **Transparency/debug drawer** (optional but recommended): a "view query" toggle for technical users to inspect the generated SQL or Python.
 
